@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ringtones_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py collectstatic --noinput && python manage.py migrate && python manage.py createsuperuser --no-input && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - static_volume:/app/staticfiles
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - SECRET_KEY=yoursecretkeyhere
+      - DEBUG=True
+      - ALLOWED_HOSTS=*
+      - POSTGRES_DB=ringtones_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - DJANGO_SUPERUSER_USERNAME=admin14
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+      - DJANGO_SUPERUSER_PASSWORD=root14
+
+
+volumes:
+  postgres_data:
+  static_volume:
+
